@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import EnableNotifications from "./EnableNotifications";
 
 export default function Home() {
   const [samples, setSamples] = useState([]);
@@ -48,6 +49,8 @@ export default function Home() {
     <main className="content">
       <h1>食安通知</h1>
       <p className="intro">每日自動檢查食安中心違規樣本</p>
+
+      <EnableNotifications />
 
       {loading && <p className="status">載入中…</p>}
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-safety-v1";
+const CACHE_NAME = "food-safety-v2";
 const PRECACHE_URLS = ["/", "/icon-192x192.png", "/icon-512x512.png"];
 
 self.addEventListener("install", (event) => {
@@ -30,7 +30,6 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
 
-  // Always try network first for API data.
   if (url.pathname.startsWith("/api/")) {
     event.respondWith(
       fetch(request)
@@ -44,7 +43,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // For pages and static assets: cache, falling back to network.
   event.respondWith(
     caches.match(request).then((cached) => {
       const networkFetch = fetch(request)
@@ -58,6 +56,53 @@ self.addEventListener("fetch", (event) => {
         .catch(() => cached);
 
       return cached || networkFetch;
+    }),
+  );
+});
+
+self.addEventListener("push", (event) => {
+  let data = {
+    title: "食安通知",
+    body: "有新的違規樣本",
+    icon: "/icon-192x192.png",
+  };
+
+  try {
+    if (event.data) {
+      data = { ...data, ...event.data.json() };
+    }
+  } catch (error) {
+    console.error("Failed to parse push payload:", error);
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon || "/icon-192x192.png",
+      badge: "/icon-192x192.png",
+      data: {
+        url: data.url || "/",
+      },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || "/";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientsArr) => {
+      for (const client of clientsArr) {
+        if ("focus" in client) {
+          client.navigate(targetUrl);
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+      return undefined;
     }),
   );
 });
