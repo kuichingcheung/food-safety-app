@@ -34,6 +34,17 @@ function canUsePush() {
   );
 }
 
+async function getVapidPublicKey() {
+  const response = await fetch("/api/push/vapid-public-key");
+  const data = await response.json();
+
+  if (!response.ok || !data.publicKey) {
+    throw new Error(data.error || "未設定 VAPID 公鑰，請先加入環境變數");
+  }
+
+  return data.publicKey;
+}
+
 async function saveSubscriptionToServer(subscription) {
   const response = await fetch("/api/push/subscribe", {
     method: "POST",
@@ -100,9 +111,7 @@ export default function EnableNotifications() {
         return;
       }
 
-      if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
-        throw new Error("未設定 VAPID 公鑰，請先加入環境變數");
-      }
+      const vapidPublicKey = await getVapidPublicKey();
 
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
@@ -116,9 +125,7 @@ export default function EnableNotifications() {
       if (!subscription) {
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(
-            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-          ),
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         });
       }
 
