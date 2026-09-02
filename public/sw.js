@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-safety-v2";
+const CACHE_NAME = "food-safety-v3";
 const PRECACHE_URLS = ["/", "/icon-192x192.png", "/icon-512x512.png"];
 
 self.addEventListener("install", (event) => {

@@ -56,6 +56,13 @@ h1 {
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
+  margin-bottom: 0.75rem;
+}
+
+.notify-button-secondary {
+  background: #fff;
+  color: #2e7d6b;
+  border: 2px solid #2e7d6b;
 }
 
 .notify-button:disabled {
@@ -77,6 +84,14 @@ h1 {
 
 .notify-hint {
   margin-bottom: 0.75rem;
+}
+
+.notify-hint-warning {
+  padding: 12px;
+  background: #fff8e6;
+  border: 1px solid #f0d98c;
+  border-radius: 8px;
+  color: #6b4f00;
 }
 
 .sample-list {
