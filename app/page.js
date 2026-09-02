@@ -95,24 +95,22 @@ export default function Home() {
 
             return (
               <li key={itemKey}>
-                <div className="sample-row">
-                  <div className="sample-body">
-                    <span className="date">{sample.date}</span>
-                    {sample.url ? (
-                      <a
-                        className="title"
-                        href={sample.url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {sample.title}
-                      </a>
-                    ) : (
-                      <span className="title">{sample.title}</span>
-                    )}
-                  </div>
+                <div className="sample-header">
+                  <span className="date">{sample.date}</span>
                   <SampleShareButton title={sample.title} />
                 </div>
+                {sample.url ? (
+                  <a
+                    className="title"
+                    href={sample.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {sample.title}
+                  </a>
+                ) : (
+                  <span className="title">{sample.title}</span>
+                )}
               </li>
             );
           })}
