@@ -3,6 +3,7 @@ import {
   fetchMainPageSamples,
   sampleKey,
 } from "@/lib/cfs-samples";
+import { buildNewSamplesNotification } from "@/lib/notification-messages";
 import { sendToAllSubscriptions } from "@/lib/push-notify";
 
 export const dynamic = "force-dynamic";
@@ -16,14 +17,6 @@ function isAuthorized(request) {
 
   const authHeader = request.headers.get("authorization");
   return authHeader === `Bearer ${cronSecret}`;
-}
-
-function buildNotificationBody(newSamples) {
-  if (newSamples.length === 1) {
-    return newSamples[0].title;
-  }
-
-  return `有 ${newSamples.length} 條新樣本，最新：${newSamples[0].title}`;
 }
 
 export async function GET(request) {
@@ -74,9 +67,11 @@ export async function GET(request) {
       });
     }
 
+    const notification = buildNewSamplesNotification(newSamples);
+
     const notifyResult = await sendToAllSubscriptions({
-      title: "食安中心有新違規樣本",
-      body: buildNotificationBody(newSamples),
+      title: notification.title,
+      body: notification.body,
       url: "/",
     });
 
@@ -86,6 +81,7 @@ export async function GET(request) {
       success: true,
       notified: notifyResult.sent > 0,
       newCount: newSamples.length,
+      notification,
       newSamples: newSamples.map((sample) => ({
         date: sample.date,
         title: sample.title,
