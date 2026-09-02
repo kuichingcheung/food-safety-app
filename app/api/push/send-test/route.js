@@ -1,56 +1,24 @@
-import {
-  getAllSubscriptions,
-  removeSubscription,
-} from "@/lib/push-storage";
-import { buildNotificationPayload, getWebPush } from "@/lib/webpush";
+import { sendToAllSubscriptions } from "@/lib/push-notify";
 
 export async function POST() {
   try {
-    const subscriptions = await getAllSubscriptions();
-
-    if (subscriptions.length === 0) {
-      return Response.json(
-        { error: "未有已儲存的 subscription，請先撳「開啟通知」" },
-        { status: 404 },
-      );
-    }
-
-    const webpush = getWebPush();
-    const payload = buildNotificationPayload({
+    const result = await sendToAllSubscriptions({
       title: "食安通知測試",
       body: "你已成功收到測試推送通知。",
       url: "/",
     });
 
-    let sent = 0;
-    const errors = [];
-
-    for (const subscription of subscriptions) {
-      try {
-        await webpush.sendNotification(subscription, payload);
-        sent += 1;
-      } catch (error) {
-        console.error("Failed to send push:", error);
-
-        if (error.statusCode === 404 || error.statusCode === 410) {
-          await removeSubscription(subscription.endpoint);
-        }
-
-        errors.push(error.message || "send failed");
-      }
-    }
-
-    if (sent === 0) {
+    if (result.sent === 0) {
       return Response.json(
-        { error: "發送失敗，請重新開啟通知後再試" },
-        { status: 502 },
+        { error: "未有已儲存的 subscription，請先撳「開啟通知」" },
+        { status: result.errors.includes("No subscriptions") ? 404 : 502 },
       );
     }
 
     return Response.json({
       success: true,
-      sent,
-      failed: errors.length,
+      sent: result.sent,
+      failed: result.failed,
     });
   } catch (error) {
     console.error("Send test notification failed:", error);
