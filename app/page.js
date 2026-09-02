@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import EnableNotifications from "./EnableNotifications";
+import SampleShareButton from "./SampleShareButton";
 
 function formatUpdatedAt(isoString) {
   const date = new Date(isoString);
@@ -89,23 +90,32 @@ export default function Home() {
 
       {!loading && !error && (
         <ul className="sample-list">
-          {samples.map((sample) => (
-            <li key={`${sample.date}-${sample.title}-${sample.url ?? ""}`}>
-              <span className="date">{sample.date}</span>
-              {sample.url ? (
-                <a
-                  className="title"
-                  href={sample.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {sample.title}
-                </a>
-              ) : (
-                <span className="title">{sample.title}</span>
-              )}
-            </li>
-          ))}
+          {samples.map((sample) => {
+            const itemKey = `${sample.date}-${sample.title}-${sample.url ?? ""}`;
+
+            return (
+              <li key={itemKey}>
+                <div className="sample-row">
+                  <div className="sample-body">
+                    <span className="date">{sample.date}</span>
+                    {sample.url ? (
+                      <a
+                        className="title"
+                        href={sample.url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {sample.title}
+                      </a>
+                    ) : (
+                      <span className="title">{sample.title}</span>
+                    )}
+                  </div>
+                  <SampleShareButton title={sample.title} />
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>
