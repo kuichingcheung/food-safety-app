@@ -13,7 +13,10 @@ export async function GET() {
       );
     }
 
-    return Response.json({ samples });
+    return Response.json({
+      samples,
+      updatedAt: new Date().toISOString(),
+    });
   } catch (error) {
     console.error("Failed to fetch CFS unsat samples:", error);
     return Response.json(

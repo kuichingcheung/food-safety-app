@@ -3,8 +3,28 @@
 import { useEffect, useState } from "react";
 import EnableNotifications from "./EnableNotifications";
 
+function formatUpdatedAt(isoString) {
+  const date = new Date(isoString);
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Hong_Kong",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+      .formatToParts(date)
+      .map(({ type, value }) => [type, value]),
+  );
+
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
+}
+
 export default function Home() {
   const [samples, setSamples] = useState([]);
+  const [updatedAt, setUpdatedAt] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -25,10 +45,14 @@ export default function Home() {
 
         if (!cancelled) {
           setSamples(data.samples);
+          if (data.updatedAt) {
+            setUpdatedAt(formatUpdatedAt(data.updatedAt));
+          }
         }
       } catch {
         if (!cancelled) {
           setSamples([]);
+          setUpdatedAt("");
           setError(true);
         }
       } finally {
@@ -48,7 +72,12 @@ export default function Home() {
   return (
     <main className="content">
       <h1>食安通知</h1>
-      <p className="intro">每日自動檢查食安中心違規樣本</p>
+
+      {!loading && updatedAt && (
+        <p className="last-updated">最後更新：{updatedAt}</p>
+      )}
+
+      <p className="intro">資料來自食安中心，有新違規先通知你</p>
 
       <EnableNotifications />
 
