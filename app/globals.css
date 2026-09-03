@@ -173,13 +173,13 @@ h1 {
 }
 
 .type-badge-unsat {
-  background: #eef7f4;
-  color: #2e7d6b;
+  background: #fff3e6;
+  color: #a65d00;
 }
 
 .type-badge-alert {
-  background: #fff3e6;
-  color: #a65d00;
+  background: #fdeaea;
+  color: #c62828;
 }
 
 .type-badge-allergen {
