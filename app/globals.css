@@ -126,6 +126,42 @@ h1 {
   margin-bottom: 0;
 }
 
+.sample-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+}
+
+.type-badge {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.type-badge-unsat {
+  background: #eef7f4;
+  color: #2e7d6b;
+}
+
+.type-badge-alert {
+  background: #fff3e6;
+  color: #a65d00;
+}
+
+.type-badge-allergen {
+  background: #fce8f3;
+  color: #9b2c6b;
+}
+
+.sample-content .title {
+  flex: 1;
+  min-width: 0;
+}
+
 .share-button {
   flex-shrink: 0;
   padding: 5px 12px;

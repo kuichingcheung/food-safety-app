@@ -1,26 +1,27 @@
-import { fetchRecentSamples } from "@/lib/cfs-samples";
+import { fetchRecentItems } from "@/lib/cfs-samples";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const samples = await fetchRecentSamples();
+    const items = await fetchRecentItems();
 
-    if (samples.length === 0) {
+    if (items.length === 0) {
       return Response.json(
-        { error: "暫時無法取得資料", samples: [] },
+        { error: "暫時無法取得資料", items: [] },
         { status: 502 },
       );
     }
 
     return Response.json({
-      samples,
+      items,
+      samples: items,
       updatedAt: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Failed to fetch CFS unsat samples:", error);
+    console.error("Failed to fetch CFS items:", error);
     return Response.json(
-      { error: "暫時無法取得資料", samples: [] },
+      { error: "暫時無法取得資料", items: [] },
       { status: 502 },
     );
   }

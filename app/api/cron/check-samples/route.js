@@ -1,9 +1,9 @@
 import { getLastSeenKeys, saveLastSeenKeys } from "@/lib/check-state";
 import {
-  fetchMainPageSamples,
-  sampleKey,
+  fetchMainPageItems,
+  itemKey,
 } from "@/lib/cfs-samples";
-import { buildNewSamplesNotification } from "@/lib/notification-messages";
+import { buildNewItemsNotification } from "@/lib/notification-messages";
 import { sendToAllSubscriptions } from "@/lib/push-notify";
 
 export const dynamic = "force-dynamic";
@@ -25,16 +25,16 @@ export async function GET(request) {
   }
 
   try {
-    const currentSamples = await fetchMainPageSamples();
+    const currentItems = await fetchMainPageItems();
 
-    if (currentSamples.length === 0) {
+    if (currentItems.length === 0) {
       return Response.json(
-        { error: "無法取得違規樣本", checkedAt: new Date().toISOString() },
+        { error: "無法取得食安資料", checkedAt: new Date().toISOString() },
         { status: 502 },
       );
     }
 
-    const currentKeys = currentSamples.map(sampleKey);
+    const currentKeys = currentItems.map(itemKey);
     const lastSeenKeys = await getLastSeenKeys();
 
     if (!lastSeenKeys) {
@@ -44,30 +44,30 @@ export async function GET(request) {
         success: true,
         initialized: true,
         notified: false,
-        message: "首次檢查，已記錄現有樣本，未發送通知",
-        sampleCount: currentSamples.length,
+        message: "首次檢查，已記錄現有資料，未發送通知",
+        itemCount: currentItems.length,
         checkedAt: new Date().toISOString(),
       });
     }
 
     const lastSeenSet = new Set(lastSeenKeys);
-    const newSamples = currentSamples.filter(
-      (sample) => !lastSeenSet.has(sampleKey(sample)),
+    const newItems = currentItems.filter(
+      (item) => !lastSeenSet.has(itemKey(item)),
     );
 
-    if (newSamples.length === 0) {
+    if (newItems.length === 0) {
       await saveLastSeenKeys(currentKeys);
 
       return Response.json({
         success: true,
         notified: false,
         newCount: 0,
-        message: "沒有新樣本",
+        message: "沒有新消息",
         checkedAt: new Date().toISOString(),
       });
     }
 
-    const notification = buildNewSamplesNotification(newSamples);
+    const notification = buildNewItemsNotification(newItems);
 
     const notifyResult = await sendToAllSubscriptions({
       title: notification.title,
@@ -80,11 +80,13 @@ export async function GET(request) {
     return Response.json({
       success: true,
       notified: notifyResult.sent > 0,
-      newCount: newSamples.length,
+      newCount: newItems.length,
       notification,
-      newSamples: newSamples.map((sample) => ({
-        date: sample.date,
-        title: sample.title,
+      newItems: newItems.map((item) => ({
+        type: item.type,
+        typeLabel: item.typeLabel,
+        date: item.date,
+        title: item.title,
       })),
       sent: notifyResult.sent,
       failed: notifyResult.failed,

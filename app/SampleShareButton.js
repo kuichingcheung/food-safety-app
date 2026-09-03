@@ -1,26 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { formatSampleSummary } from "@/lib/notification-messages";
+import {
+  formatItemDisplayText,
+  formatItemLine,
+} from "@/lib/notification-messages";
 
-const SITE_URL = "https://food-safety-app-eight.vercel.app/";
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  "https://food-safety-notification.vercel.app/";
 
-function buildShareText(title) {
-  const summary = formatSampleSummary(title);
-  return `${summary}\n\n來自食安通知\n${SITE_URL}`;
+function buildShareText(item) {
+  const line = formatItemLine(item);
+  return `${line}\n\n來自食安通知\n${SITE_URL}`;
 }
 
-export default function SampleShareButton({ title }) {
+export default function SampleShareButton({ item }) {
   const [feedback, setFeedback] = useState("");
+  const displayText = formatItemDisplayText(item);
+  const shareLine = formatItemLine(item);
 
   async function handleShare() {
-    const shareText = buildShareText(title);
-    const summary = formatSampleSummary(title);
+    const shareText = buildShareText(item);
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: summary,
+          title: shareLine,
           text: `來自食安通知\n${SITE_URL}`,
           url: SITE_URL,
         });
@@ -51,7 +57,7 @@ export default function SampleShareButton({ title }) {
       type="button"
       className="share-button"
       onClick={handleShare}
-      aria-label={`分享 ${formatSampleSummary(title)}`}
+      aria-label={`分享 ${displayText}`}
     >
       {feedback || "分享"}
     </button>

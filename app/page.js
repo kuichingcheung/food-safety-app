@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import EnableNotifications from "./EnableNotifications";
 import SampleShareButton from "./SampleShareButton";
+import { formatItemDisplayText } from "@/lib/notification-messages";
 
 function formatUpdatedAt(isoString) {
   const date = new Date(isoString);
@@ -23,8 +24,20 @@ function formatUpdatedAt(isoString) {
   return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
 }
 
+function typeBadgeClass(typeLabel) {
+  if (typeLabel === "致敏物警報") {
+    return "type-badge type-badge-allergen";
+  }
+
+  if (typeLabel === "食物警報") {
+    return "type-badge type-badge-alert";
+  }
+
+  return "type-badge type-badge-unsat";
+}
+
 export default function Home() {
-  const [samples, setSamples] = useState([]);
+  const [items, setItems] = useState([]);
   const [updatedAt, setUpdatedAt] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -32,27 +45,32 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadSamples() {
+    async function loadItems() {
       setLoading(true);
       setError(false);
 
       try {
         const response = await fetch("/api/unsat-samples");
         const data = await response.json();
+        const list = Array.isArray(data.items)
+          ? data.items
+          : Array.isArray(data.samples)
+            ? data.samples
+            : [];
 
-        if (!response.ok || !Array.isArray(data.samples) || data.samples.length === 0) {
+        if (!response.ok || list.length === 0) {
           throw new Error(data.error || "暫時無法取得資料");
         }
 
         if (!cancelled) {
-          setSamples(data.samples);
+          setItems(list);
           if (data.updatedAt) {
             setUpdatedAt(formatUpdatedAt(data.updatedAt));
           }
         }
       } catch {
         if (!cancelled) {
-          setSamples([]);
+          setItems([]);
           setUpdatedAt("");
           setError(true);
         }
@@ -63,7 +81,7 @@ export default function Home() {
       }
     }
 
-    loadSamples();
+    loadItems();
 
     return () => {
       cancelled = true;
@@ -78,7 +96,7 @@ export default function Home() {
         <p className="last-updated">最後更新：{updatedAt}</p>
       )}
 
-      <p className="intro">資料來自食安中心，有新違規先通知你</p>
+      <p className="intro">資料來自食安中心，有新消息先通知你</p>
 
       <EnableNotifications />
 
@@ -90,27 +108,33 @@ export default function Home() {
 
       {!loading && !error && (
         <ul className="sample-list">
-          {samples.map((sample) => {
-            const itemKey = `${sample.date}-${sample.title}-${sample.url ?? ""}`;
+          {items.map((item) => {
+            const itemKey = `${item.type}-${item.typeLabel}-${item.date}-${item.title}-${item.url ?? ""}`;
+            const displayText = formatItemDisplayText(item);
 
             return (
               <li key={itemKey}>
                 <div className="sample-header">
-                  <span className="date">{sample.date}</span>
-                  <SampleShareButton title={sample.title} />
+                  <span className="date">{item.date}</span>
+                  <SampleShareButton item={item} />
                 </div>
-                {sample.url ? (
-                  <a
-                    className="title"
-                    href={sample.url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {sample.title}
-                  </a>
-                ) : (
-                  <span className="title">{sample.title}</span>
-                )}
+                <div className="sample-content">
+                  <span className={typeBadgeClass(item.typeLabel)}>
+                    [{item.typeLabel}]
+                  </span>
+                  {item.url ? (
+                    <a
+                      className="title"
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {displayText}
+                    </a>
+                  ) : (
+                    <span className="title">{displayText}</span>
+                  )}
+                </div>
               </li>
             );
           })}
