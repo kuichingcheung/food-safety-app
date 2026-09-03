@@ -63,7 +63,6 @@ export default function EnableNotifications() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [supported, setSupported] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [testing, setTesting] = useState(false);
   const [status, setStatus] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
@@ -132,33 +131,12 @@ export default function EnableNotifications() {
       await saveSubscriptionToServer(subscription.toJSON());
 
       setSubscribed(true);
-      setStatus("通知已開啟！可以撳「發送測試通知」試試。");
+      setStatus("通知已開啟");
     } catch (error) {
       console.error("Enable notifications failed:", error);
       setStatus(error.message || "開啟通知失敗，請稍後再試");
     } finally {
       setBusy(false);
-    }
-  }
-
-  async function handleSendTest() {
-    setTesting(true);
-    setStatus("");
-
-    try {
-      const response = await fetch("/api/push/send-test", { method: "POST" });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "發送測試通知失敗");
-      }
-
-      setStatus(`測試通知已發送（成功 ${data.sent} 個裝置）`);
-    } catch (error) {
-      console.error("Send test failed:", error);
-      setStatus(error.message || "發送測試通知失敗");
-    } finally {
-      setTesting(false);
     }
   }
 
@@ -180,17 +158,6 @@ export default function EnableNotifications() {
       >
         {busy ? "處理中…" : subscribed ? "通知已開啟" : "開啟通知"}
       </button>
-
-      {subscribed && (
-        <button
-          type="button"
-          className="notify-button notify-button-secondary"
-          onClick={handleSendTest}
-          disabled={testing}
-        >
-          {testing ? "發送中…" : "發送測試通知"}
-        </button>
-      )}
 
       {status && <p className="notify-status">{status}</p>}
     </div>

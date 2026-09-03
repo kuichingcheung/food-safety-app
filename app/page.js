@@ -198,6 +198,20 @@ export default function Home() {
           )}
         </>
       )}
+
+      <footer className="site-footer">
+        <p>此程式由健身教練 kuikui_pt 開發</p>
+        <p>
+          IG:{" "}
+          <a
+            href="https://www.instagram.com/kuikui_pt?igsi=MXNqdXZ2eWQxMHJsaw%3D%3D&utm_source=qr"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Kuikui_pt
+          </a>
+        </p>
+      </footer>
     </main>
   );
 }
