@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import EnableNotifications from "./EnableNotifications";
 import SampleShareButton from "./SampleShareButton";
 import { formatItemDisplayText } from "@/lib/notification-messages";
@@ -60,52 +60,56 @@ export default function Home() {
   const [updatedAt, setUpdatedAt] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const loadItems = useCallback(async (signal) => {
+    setLoading(true);
+    setError(false);
+
+    try {
+      const response = await fetch("/api/unsat-samples", { signal });
+      const data = await response.json();
+      const list = Array.isArray(data.items)
+        ? data.items
+        : Array.isArray(data.samples)
+          ? data.samples
+          : [];
+
+      if (!response.ok || list.length === 0) {
+        throw new Error(data.error || "暫時無法取得資料");
+      }
+
+      setItems(list);
+      if (data.updatedAt) {
+        setUpdatedAt(formatUpdatedAt(data.updatedAt));
+      } else {
+        setUpdatedAt("");
+      }
+    } catch (fetchError) {
+      if (fetchError?.name === "AbortError") {
+        return;
+      }
+
+      setItems([]);
+      setUpdatedAt("");
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadItems() {
-      setLoading(true);
-      setError(false);
-
-      try {
-        const response = await fetch("/api/unsat-samples");
-        const data = await response.json();
-        const list = Array.isArray(data.items)
-          ? data.items
-          : Array.isArray(data.samples)
-            ? data.samples
-            : [];
-
-        if (!response.ok || list.length === 0) {
-          throw new Error(data.error || "暫時無法取得資料");
-        }
-
-        if (!cancelled) {
-          setItems(list);
-          if (data.updatedAt) {
-            setUpdatedAt(formatUpdatedAt(data.updatedAt));
-          }
-        }
-      } catch {
-        if (!cancelled) {
-          setItems([]);
-          setUpdatedAt("");
-          setError(true);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadItems();
+    const controller = new AbortController();
+    loadItems(controller.signal);
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
-  }, []);
+  }, [loadItems, reloadToken]);
+
+  function handleRetry() {
+    setReloadToken((count) => count + 1);
+  }
 
   const filteredItems = filterItems(items, filter);
 
@@ -113,7 +117,7 @@ export default function Home() {
     <main className="content">
       <h1>食安通知</h1>
 
-      {!loading && updatedAt && (
+      {!loading && !error && updatedAt && (
         <p className="last-updated">最後更新：{updatedAt}</p>
       )}
 
@@ -121,10 +125,20 @@ export default function Home() {
 
       <EnableNotifications />
 
-      {loading && <p className="status">載入中…</p>}
+      {loading && (
+        <div className="status-panel loading-panel" role="status" aria-live="polite">
+          <div className="loading-spinner" aria-hidden="true" />
+          <p>正在更新資料...</p>
+        </div>
+      )}
 
       {!loading && error && (
-        <p className="status error">暫時無法取得資料</p>
+        <div className="status-panel error-panel" role="alert">
+          <p>暫時無法取得資料，請稍後再試</p>
+          <button type="button" className="retry-button" onClick={handleRetry}>
+            重新整理
+          </button>
+        </div>
       )}
 
       {!loading && !error && (
@@ -145,7 +159,9 @@ export default function Home() {
           </div>
 
           {filteredItems.length === 0 ? (
-            <p className="status">此類別暫時沒有資料</p>
+            <div className="status-panel empty-panel" role="status">
+              <p>暫時冇相關資料</p>
+            </div>
           ) : (
             <ul className="sample-list">
               {filteredItems.map((item) => {

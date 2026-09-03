@@ -246,6 +246,68 @@ a.title:hover {
   padding: 20px 16px;
 }
 
+.status-panel {
+  text-align: center;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 24px 16px;
+}
+
+.status-panel p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #555;
+}
+
+.loading-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #dceee8;
+  border-top-color: #2e7d6b;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-panel p {
+  color: #8a1f1f;
+  margin-bottom: 16px;
+}
+
+.empty-panel p {
+  color: #666;
+}
+
+.retry-button {
+  min-height: 44px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #2e7d6b;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.retry-button:active {
+  transform: scale(0.98);
+}
+
 .status.error {
   color: #8a1f1f;
 }
