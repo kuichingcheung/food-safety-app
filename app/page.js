@@ -160,7 +160,7 @@ export default function Home() {
 
           {filteredItems.length === 0 ? (
             <div className="status-panel empty-panel" role="status">
-              <p>暫時冇相關資料</p>
+              <p>暫時無相關資料</p>
             </div>
           ) : (
             <ul className="sample-list">
