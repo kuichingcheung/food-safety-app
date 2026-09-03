@@ -36,8 +36,27 @@ function typeBadgeClass(typeLabel) {
   return "type-badge type-badge-unsat";
 }
 
+const FILTERS = [
+  { id: "all", label: "全部" },
+  { id: "unsat", label: "違規樣本" },
+  { id: "alert", label: "食物警報" },
+];
+
+function filterItems(items, filter) {
+  if (filter === "unsat") {
+    return items.filter((item) => item.type === "unsat");
+  }
+
+  if (filter === "alert") {
+    return items.filter((item) => item.type === "alert");
+  }
+
+  return items;
+}
+
 export default function Home() {
   const [items, setItems] = useState([]);
+  const [filter, setFilter] = useState("all");
   const [updatedAt, setUpdatedAt] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -88,6 +107,8 @@ export default function Home() {
     };
   }, []);
 
+  const filteredItems = filterItems(items, filter);
+
   return (
     <main className="content">
       <h1>食安通知</h1>
@@ -107,38 +128,59 @@ export default function Home() {
       )}
 
       {!loading && !error && (
-        <ul className="sample-list">
-          {items.map((item) => {
-            const itemKey = `${item.type}-${item.typeLabel}-${item.date}-${item.title}-${item.url ?? ""}`;
-            const displayText = formatItemDisplayText(item);
+        <>
+          <div className="filter-bar" role="tablist" aria-label="篩選類型">
+            {FILTERS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="tab"
+                aria-selected={filter === option.id}
+                className={`filter-button${filter === option.id ? " active" : ""}`}
+                onClick={() => setFilter(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
 
-            return (
-              <li key={itemKey}>
-                <div className="sample-header">
-                  <span className="date">{item.date}</span>
-                  <SampleShareButton item={item} />
-                </div>
-                <div className="sample-content">
-                  <span className={typeBadgeClass(item.typeLabel)}>
-                    [{item.typeLabel}]
-                  </span>
-                  {item.url ? (
-                    <a
-                      className="title"
-                      href={item.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {displayText}
-                    </a>
-                  ) : (
-                    <span className="title">{displayText}</span>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+          {filteredItems.length === 0 ? (
+            <p className="status">此類別暫時沒有資料</p>
+          ) : (
+            <ul className="sample-list">
+              {filteredItems.map((item) => {
+                const itemKey = `${item.type}-${item.typeLabel}-${item.date}-${item.title}-${item.url ?? ""}`;
+                const displayText = formatItemDisplayText(item);
+
+                return (
+                  <li key={itemKey}>
+                    <div className="sample-header">
+                      <span className="date">{item.date}</span>
+                      <SampleShareButton item={item} />
+                    </div>
+                    <div className="sample-content">
+                      <span className={typeBadgeClass(item.typeLabel)}>
+                        [{item.typeLabel}]
+                      </span>
+                      {item.url ? (
+                        <a
+                          className="title"
+                          href={item.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {displayText}
+                        </a>
+                      ) : (
+                        <span className="title">{displayText}</span>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </>
       )}
     </main>
   );

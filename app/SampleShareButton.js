@@ -8,7 +8,7 @@ import {
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  "https://food-safety-notification.vercel.app/";
+  "https://food-safety-app-eight.vercel.app/";
 
 function buildShareText(item) {
   const line = formatItemLine(item);
